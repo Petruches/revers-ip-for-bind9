@@ -1,14 +1,20 @@
 #!python3.12
 import sys
 import getopt
+import re
 
+
+PATTERN = r"^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$"
 
 def tail(fnam: str, k: int):
-    with open(fnam,"r") as fi:
-        txt=fi.readlines()
-        count=len(txt)
-        for i in range(count-k,count):
-            print(txt[i],end='')
+    try:
+        with open(fnam,"r") as fi:
+            txt=fi.readlines()
+            count=len(txt)
+            for i in range(count-k,count):
+                print(txt[i],end='')
+    except Exception as a:
+        print(a)
 
 
 def hlp(arg):
@@ -38,11 +44,18 @@ def main():
             ip=input("Введите ip:\n").split('.')
             ip.reverse()
             record = '.'.join(ip) + ".in-addr.arpa."
+            check_pattern = re.search(PATTERN, str('.'.join(ip)))
+            if check_pattern:
+                print("############", "Check successfully", check_pattern.group(), "############")
+            else:
+                print("Check not successfully")
+                sys.exit(1)
             file = open(sys.argv[4], 'a')
             file.write(record.ljust(54) + f"{sys.argv[2]}   IN  PTR    " + sys.argv[3] + "." + '\n')
             file.close()
+
             tail(sys.argv[4], 4)
-        except Exeption as e:
+        except Exception as e:
             print(e)
 
 
