@@ -157,7 +157,7 @@ class MyApp(Base):
                 self.file = a
                 print(f"file - {self.file}")
             elif o in ('-j', '--json'):
-                self.check_dir(self, str(a))q
+                self.check_dir(self, str(a))
             else:
                 assert False, 'unhandled option'
 
