@@ -17,7 +17,7 @@ class Base():
     DIR_REVERS = os.path.join(HOME, ".revers")
     FILE_REVERS = os.path.join(HOME, ".revers/revers.json")
     DIR_ZONE = "/zones/"
-
+    PATTERN = r"^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$"
 
     @staticmethod
     def send_error():
@@ -25,7 +25,7 @@ class Base():
 
 
     @staticmethod
-    def tail(fnam: str, k: int):
+    def tail(fnam: str, k: int) -> None:
         try:
             with open(fnam,"r") as fi:
                 txt=fi.readlines()
@@ -37,7 +37,7 @@ class Base():
 
 
     @staticmethod
-    def usage():
+    def usage() -> None:
         print("""Usage: python hello.py [OPTION]... [arg]: [count] [timeout] [name] [file]
 
   -h, --help                      display this help and exit
@@ -72,7 +72,7 @@ class Base():
 
 
     @staticmethod
-    def create_json_file(self):
+    def create_json_file(self) -> None:
         if os.path.isfile(self.FILE_REVERS):
             with open(os.path.join(self.DIR_REVERS, self.FILE_REVERS), "w") as filejs:
                 filejs.write("""{
@@ -85,8 +85,9 @@ class Base():
 
 
     @staticmethod
-    def check_dir(self, path = None) -> None:
+    def check_dir(self, path: str = None) -> None:
         try:
+            self.check_path(path)
             if self.my_check_json(self):
                 logging.debug(f"\"{self.FILE_REVERS}\" exists")
             else:
@@ -100,7 +101,7 @@ class Base():
                 with open(os.path.join(self.DIR_REVERS, self.FILE_REVERS), 'w') as filejs:
                     json.dump(temp, filejs, ensure_ascii=False, indent=4)
                 logging.debug(f"\"{self.FILE_REVERS}\" created")
-                print(f"please, fill out the file {self.FILE_REVERS}")
+                print(f"file {self.FILE_REVERS} exists")
         except Exception as e:
             logging.error(e)
             print(self.send_error)
@@ -108,7 +109,7 @@ class Base():
 
 
     @staticmethod
-    def check_arg_for_json(self, arg):
+    def check_arg_for_json(self, arg) -> None:# ВОЗМОЖНО НЕ НУЖЕН БУДЕТ
         try:
             if self.my_check_json(self) == False:
                 logging.debug(f"\"{self.FILE_REVERS}\" doesn't exists")
@@ -124,40 +125,85 @@ class Base():
             sys.exit()
 
 
-class MyApp(Base):
+    @staticmethod
+    def check_path(path: str) -> None:
+        if os.path.isdir(path):
+            print(f"{path} this directory exist")
+            logging.debug(f"{path} this directory exist")
+        else:
+            print(f"{path} this directory does not exist")
+            sys.exit(0)
 
-    PATTERN = r"^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$"
+    @staticmethod
+    def list_dir(self):
+        if os.path.isfile(self.FILE_REVERS):
+            try:
+                with open(self.FILE_REVERS) as file:
+                    jsn = json.load(file)
+                return [name for name in os.listdir(jsn["dir"]) if os.path.isdir(os.path.join(jsn["dir"], name))]
+            except json.JSONDecodeError as e:
+                logging.debug(e)
+
+
+    @staticmethod
+    def function():
+        pass
+
+
+    def write_down(self):
+        ip = input("Введите ip: ").split('.')
+        ip_str = '.'.join(ip)
+        self.check_pattern(ip_str, self.PATTERN)
+        ip.reverse()
+        # file = open()
+
+
+    @staticmethod
+    def hlp(self):
+        count = sys.argv[1]
+        for i in range(int(count)):
+            try:
+                ip = input("Введите ip:\n").split('.')
+                self.check_pattern(ip, self.PATTERN)
+                ip.reverse()
+                record = '.'.join(ip) + ".in-addr.arpa."
+                file = open(sys.argv[4], 'a')
+                file.write(record.ljust(54) + f"{sys.argv[2]}   IN  PTR    " + sys.argv[3] + "." + '\n')
+                file.close()
+                self.tail(sys.argv[4], 4)
+            except Exception as e:
+                print(e)
+
+
+class MyApp(Base):
 
     def __init__(self,  arg):
         self.arg = arg
         file: str
-        select: str
-        file_for_json: str
         output: str
 
 
-    def key_selection(self, *args):
+    def key_selection(self, *args) -> None:
         try:
-            opts, args = getopt.getopt(self.arg, 'hc:s:f:j:', ['help', 'count=', 'select=', 'file=', 'json='])
+            opts, args = getopt.getopt(self.arg, 'hc:r:j:i:', ['help', 'count=', 'revers=', 'json=', 'ip='])
         except getopt.GetoptError as err:
             print(err)
             sys.exit(2)
         for o, a in opts:
             if o in ("-h", "--help"):
                 self.usage()
-                sys.exit()
             elif o in ("-c", "--count"):
                 self.output = a
-                print(self.check_arg_for_json(self, self.output))
-                #self.check_arg_for_json(self, self.output)
-                # print(f"""count - {self.output}""")
-            elif o in ("-s", "--select"):
-                print(f"select - {a}")
-            elif o in ('-f', '--file'):
+                print(self.check_arg_for_json(self, self.output))# cкорее всего надо будет удалить
+            elif o in ('-r', '--revers'):
                 self.file = a
                 print(f"file - {self.file}")
             elif o in ('-j', '--json'):
                 self.check_dir(self, str(a))
+            elif o in ('-i', '--ip'):
+                ip = input("Введите ip: ").split('.')
+                ip.reverse()
+                print('.'.join(ip))
             else:
                 assert False, 'unhandled option'
 
@@ -186,10 +232,6 @@ def hlp():
             tail(sys.argv[4], 4)
         except Exception as e:
             print(e)
-
-
-def main():
-    key_selection(sys.argv[1:])
 
 
 if __name__ == '__main__':
