@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
 import sys
-import getopt
+# import getopt
 import re
 import os
 import logging
 import json
+from random import choices
+
+from InquirerPy import inquirer
 
 NAMEFILE: str = __file__.split("/")[-1].split(".")[0]
 logging.basicConfig(level=logging.DEBUG, filename=f"/var/log/{NAMEFILE}.log",filemode="w", format="%(asctime)s %(levelname)s %(message)s")
@@ -55,8 +58,8 @@ class Base():
         search_pattern = re.search(pattern, text)
         if search_pattern:
             print(f"""############
-            Check successfully {search_pattern.group()}
-            ############""")
+Check successfully {search_pattern.group()}
+############""")
         else:
             print("Check not successfully")
             sys.exit(1)
@@ -134,8 +137,15 @@ class Base():
             print(f"{path} this directory does not exist")
             sys.exit(0)
 
-    @staticmethod
-    def list_dir(self):
+
+    def show_path(self) -> str:
+        with open(self.FILE_REVERS) as file:
+            jsn = json.load(file)
+        return jsn["dir"]
+
+
+    # @staticmethod
+    def list_dir(self) -> list:
         if os.path.isfile(self.FILE_REVERS):
             try:
                 with open(self.FILE_REVERS) as file:
@@ -151,11 +161,25 @@ class Base():
 
 
     def write_down(self):
+        path = self.show_path()
+        zones: list = self.list_dir()
         ip = input("Введите ip: ").split('.')
         ip_str = '.'.join(ip)
         self.check_pattern(ip_str, self.PATTERN)
         ip.reverse()
-        # file = open()
+        zone = inquirer.select(
+            message="Выберите зону:",
+            choices=zones,
+        ).execute()
+        domens: list = os.listdir(os.path.join(path, zone))
+        domen = inquirer.select(
+            message="Выберите домен: ",
+            choices=domens,
+        ).execute()
+        full_path = os.path.join(path, zone, domen)
+        file = open(full_path, "a")
+        ip_str += ".in-addr.arpa."
+        file.write()
 
 
     @staticmethod
@@ -184,6 +208,7 @@ class MyApp(Base):
 
 
     def key_selection(self, *args) -> None:
+        import getopt
         try:
             opts, args = getopt.getopt(self.arg, 'hc:r:j:i:', ['help', 'count=', 'revers=', 'json=', 'ip='])
         except getopt.GetoptError as err:
@@ -201,9 +226,7 @@ class MyApp(Base):
             elif o in ('-j', '--json'):
                 self.check_dir(self, str(a))
             elif o in ('-i', '--ip'):
-                ip = input("Введите ip: ").split('.')
-                ip.reverse()
-                print('.'.join(ip))
+                self.write_down()
             else:
                 assert False, 'unhandled option'
 
