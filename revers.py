@@ -6,7 +6,6 @@ import os
 import logging
 import json
 from random import choices
-
 from InquirerPy import inquirer
 
 NAMEFILE: str = __file__.split("/")[-1].split(".")[0]
@@ -160,13 +159,14 @@ Check successfully {search_pattern.group()}
         pass
 
 
-    def write_down(self):
+    def write_down(self, name):
+        print(name)
         path = self.show_path()
         zones: list = self.list_dir()
         ip = input("Введите ip: ").split('.')
+        ip.reverse()
         ip_str = '.'.join(ip)
         self.check_pattern(ip_str, self.PATTERN)
-        ip.reverse()
         zone = inquirer.select(
             message="Выберите зону:",
             choices=zones,
@@ -179,7 +179,9 @@ Check successfully {search_pattern.group()}
         full_path = os.path.join(path, zone, domen)
         file = open(full_path, "a")
         ip_str += ".in-addr.arpa."
-        file.write()
+        print(ip_str)
+        file.write(ip_str.ljust(54) + name + "\n")
+        file.close()
 
 
     @staticmethod
@@ -226,7 +228,7 @@ class MyApp(Base):
             elif o in ('-j', '--json'):
                 self.check_dir(self, str(a))
             elif o in ('-i', '--ip'):
-                self.write_down()
+                self.write_down(str(a))
             else:
                 assert False, 'unhandled option'
 
