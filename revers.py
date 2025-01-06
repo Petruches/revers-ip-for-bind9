@@ -180,7 +180,7 @@ Check successfully {search_pattern.group()}
         file = open(full_path, "a")
         ip_str += ".in-addr.arpa."
         print(ip_str)
-        file.write(ip_str.ljust(54) + name + "\n")
+        file.write(ip_str.ljust(54) + f"3600   IN  PTR    {name}" + "\n")
         file.close()
 
 
