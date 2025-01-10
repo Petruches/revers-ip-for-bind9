@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 import sys
-# import getopt
 import re
 import os
 import logging
@@ -43,10 +42,9 @@ class Base():
         print("""Usage: python hello.py [OPTION]... [arg]: [count] [timeout] [name] [file]
 
   -h, --help                      display this help and exit
-  -f, --file
-  -c, --count
-  -s, --select
+  -r, --revers                    test arg
   -j, --json                      check json file, if don't exist file then create this file
+  -p, --ptr                       create PTR record
 
   Report bugs to <petryches.99@gmail.com>
         """)
@@ -142,8 +140,7 @@ Check successfully {search_pattern.group()}
         pass
 
 
-    def write_down(self, name):
-        print(name)
+    def write_down_ptr(self, name: str):
         path = self.show_path()
         zones: list = self.list_dir()
         ip = input("Введите ip: ").split('.')
@@ -154,16 +151,36 @@ Check successfully {search_pattern.group()}
             message="Выберите зону:",
             choices=zones,
         ).execute()
-        domens: list = os.listdir(os.path.join(path, zone))
-        domen = inquirer.select(
+        domains: list = os.listdir(os.path.join(path, zone))
+        domain = inquirer.select(
             message="Выберите домен: ",
-            choices=domens,
+            choices=domains,
         ).execute()
-        full_path = os.path.join(path, zone, domen)
+        full_path = os.path.join(path, zone, domain)
         file = open(full_path, "a")
         ip_str += ".in-addr.arpa."
         print(ip_str)
         file.write(ip_str.ljust(54) + f"3600   IN  PTR    {name}" + "\n")
+        file.close()
+
+    def write_down_a(self, name: str):
+        path = self.show_path()
+        zones: list = self.list_dir()
+        ip = input("Введите ip: ")
+        self.check_pattern(ip, self.PATTERN)
+        zone = inquirer.select(
+            message="Выберите зону:",
+            choices=zones,
+        ).execute()
+        domains: list = os.listdir(os.path.join(path, zone))
+        domain = inquirer.select(
+            message="Выберите домен: ",
+            choices=domains,
+        ).execute()
+        full_path = os.path.join(path, zone, domain)
+        file = open(full_path, "a")
+        print(ip)
+        file.write(name.ljust(54) + f"3600   IN  A      {ip}")
         file.close()
 
 
@@ -194,8 +211,10 @@ class MyApp(Base):
 
     def key_selection(self, *args) -> None:
         import getopt
+        longopts: list[str] = ['help', 'revers=', 'json=', 'ptr=', 'address=']
+        shortopts: str = 'hr:j:p:a:'
         try:
-            opts, args = getopt.getopt(self.arg, 'hr:j:i:', ['help', 'revers=', 'json=', 'ip='])
+            opts, args = getopt.getopt(self.arg, shortopts, longopts)
         except getopt.GetoptError as err:
             print(err)
             sys.exit(2)
@@ -206,8 +225,10 @@ class MyApp(Base):
                 print(f"file - {a}")
             elif o in ('-j', '--json'):
                 self.check_dir(self, str(a))
-            elif o in ('-i', '--ip'):
-                self.write_down(str(a))
+            elif o in ('-p', '--ptr'):
+                self.write_down_ptr(str(a))
+            elif o in ('-a', '--address'):
+                self.write_down_a(str(a))
             else:
                 assert False, 'unhandled option'
 
