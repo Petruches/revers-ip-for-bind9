@@ -151,7 +151,7 @@ Check successfully {search_pattern.group()}
             message="Выберите зону:",
             choices=zones,
         ).execute()
-        domains: list = os.listdir(os.path.join(path, zone))
+        domains: list = sorted(os.listdir(os.path.join(path, zone)))
         domain = inquirer.select(
             message="Выберите домен: ",
             choices=domains,
@@ -172,7 +172,7 @@ Check successfully {search_pattern.group()}
             message="Выберите зону:",
             choices=zones,
         ).execute()
-        domains: list = os.listdir(os.path.join(path, zone))
+        domains: list = sorted(os.listdir(os.path.join(path, zone)))
         domain = inquirer.select(
             message="Выберите домен: ",
             choices=domains,
