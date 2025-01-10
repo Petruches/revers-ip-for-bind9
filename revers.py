@@ -111,23 +111,6 @@ Check successfully {search_pattern.group()}
 
 
     @staticmethod
-    def check_arg_for_json(self, arg) -> None:# ВОЗМОЖНО НЕ НУЖЕН БУДЕТ
-        try:
-            if self.my_check_json(self) == False:
-                logging.debug(f"\"{self.FILE_REVERS}\" doesn't exists")
-                raise f"\"{self.FILE_REVERS}\" doesn't exists"
-            with open(self.FILE_REVERS) as j:
-                jsn = json.load(j)
-                j.close()
-            json_list = list(jsn[arg][0].keys())
-            return json_list
-        except Exception as e:
-            logging.error(e)
-            print(self.send_error())
-            sys.exit()
-
-
-    @staticmethod
     def check_path(path: str) -> None:
         if os.path.isdir(path):
             print(f"{path} this directory exist")
@@ -212,19 +195,15 @@ class MyApp(Base):
     def key_selection(self, *args) -> None:
         import getopt
         try:
-            opts, args = getopt.getopt(self.arg, 'hc:r:j:i:', ['help', 'count=', 'revers=', 'json=', 'ip='])
+            opts, args = getopt.getopt(self.arg, 'hr:j:i:', ['help', 'revers=', 'json=', 'ip='])
         except getopt.GetoptError as err:
             print(err)
             sys.exit(2)
         for o, a in opts:
             if o in ("-h", "--help"):
                 self.usage()
-            elif o in ("-c", "--count"):
-                self.output = a
-                print(self.check_arg_for_json(self, self.output))# cкорее всего надо будет удалить
             elif o in ('-r', '--revers'):
-                self.file = a
-                print(f"file - {self.file}")
+                print(f"file - {a}")
             elif o in ('-j', '--json'):
                 self.check_dir(self, str(a))
             elif o in ('-i', '--ip'):
