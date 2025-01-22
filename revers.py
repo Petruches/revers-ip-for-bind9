@@ -233,32 +233,6 @@ class MyApp(Base):
                 assert False, 'unhandled option'
 
 
-def hlp():
-    count = sys.argv[1]
-    for i in range(int(count)):
-        try:
-            ip=input("Введите ip:\n").split('.')
-            ip.reverse()
-            record = '.'.join(ip) + ".in-addr.arpa."
-            check_pattern(ip)
-            '''check_pattern = re.search(PATTERN, str('.'.join(ip)))
-            if check_pattern:
-                print(f"""############
-
-                Check successfully {check_pattern.group()}
-
-                ############""")
-            else:
-                print("Check not successfully")
-                sys.exit(1)'''
-            file = open(sys.argv[4], 'a')
-            file.write(record.ljust(54) + f"{sys.argv[2]}   IN  PTR    " + sys.argv[3] + "." + '\n')
-            file.close()
-            tail(sys.argv[4], 4)
-        except Exception as e:
-            print(e)
-
-
 if __name__ == '__main__':
     app = MyApp(sys.argv[1:])
     app.key_selection()
