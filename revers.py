@@ -19,6 +19,7 @@ class Base():
     FILE_REVERS = os.path.join(HOME, ".revers/revers.json")
     DIR_ZONE = "/zones/"
     PATTERN = r"^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$"
+    PATTERN_FILES = r"[0-9.]*.in-addr.arpa$"
 
     @staticmethod
     def send_error():
@@ -135,11 +136,6 @@ Check successfully {search_pattern.group()}
                 logging.debug(e)
 
 
-    @staticmethod
-    def function():
-        pass
-
-
     def write_down_ptr(self, name: str):
         path = self.show_path()
         zones: list = self.list_dir()
@@ -183,6 +179,47 @@ Check successfully {search_pattern.group()}
         file.write(name.ljust(54) + f"3600   IN  A      {ip}")
         file.close()
 
+    def write_down_all(self, name: str, ip: str, ptr: bool == False):
+        try:
+            path = self.show_path()
+            zones: list = self.list_dir()
+            self.check_pattern(ip, self.PATTERN)
+            if ptr:
+                ip_ptr = ip.split('.')
+                ip_ptr.reverse()
+                ip_str = '.'.join(ip)
+                print("select PTR zone")
+                zone_ptr = inquirer.select(
+                    message="Выберите зону:",
+                    choices=zones,
+                ).execute()
+                domains: list = sorted(os.listdir(os.path.join(path, zone_ptr)))
+                domain_ptr = inquirer.select(
+                    message="Выберите домен: ",
+                    choices=domains,
+                ).execute()
+                full_path_ptr = os.path.join(path, zone_ptr, domain_ptr)
+                file = open(full_path_ptr, "a")
+                ip_str += ".in-addr.arpa."
+                print(ip_str)
+                file.write(ip_str.ljust(54) + f"3600   IN  PTR    {name}" + "\n")
+                file.close()
+            zone = inquirer.select(
+                message="Выберите зону:",
+                choices=zones,
+            ).execute()
+            domains: list = sorted(os.listdir(os.path.join(path, zone)))
+            domain = inquirer.select(
+                message="Выберите домен: ",
+                choices=domains,
+            ).execute()
+            full_path = os.path.join(path, zone, domain)
+            file = open(full_path, "a")
+            file.write(name.ljust(54) + f"3600   IN  A      {ip}")
+            file.close()
+        except Exception as e:
+            print(e)
+
 
     @staticmethod
     def hlp(self):
@@ -205,14 +242,15 @@ class MyApp(Base):
 
     def __init__(self,  arg):
         self.arg = arg
-        file: str
-        output: str
+        self.ip: str
+        self.address: str
+        self.ptr: bool = False
 
 
     def key_selection(self, *args) -> None:
         import getopt
-        longopts: list[str] = ['help', 'revers=', 'json=', 'ptr=', 'address=']
-        shortopts: str = 'hr:j:p:a:'
+        longopts: list[str] = ['help', 'revers=', 'json=', 'ptr', 'address=', 'ip=']
+        shortopts: str = 'hr:j:pa:i:'
         try:
             opts, args = getopt.getopt(self.arg, shortopts, longopts)
         except getopt.GetoptError as err:
@@ -226,9 +264,15 @@ class MyApp(Base):
             elif o in ('-j', '--json'):
                 self.check_dir(self, str(a))
             elif o in ('-p', '--ptr'):
-                self.write_down_ptr(str(a))
+                self.ptr = True
+                # self.write_down_ptr(str(a))
             elif o in ('-a', '--address'):
-                self.write_down_a(str(a))
+                self.address = a
+                # self.write_down_a(str(a))
+            elif o in ('-i', '--ip'):
+                self.ip = a
+                print(self.address, self.ip, self.ptr)
+                # self.write_down_all(self.ptr, self.address)
             else:
                 assert False, 'unhandled option'
 
