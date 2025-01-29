@@ -19,7 +19,7 @@ class Base():
     FILE_REVERS = os.path.join(HOME, ".revers/revers.json")
     DIR_ZONE = "/zones/"
     PATTERN = r"^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$"
-    PATTERN_FILES = r"[0-9.]*.in-addr.arpa$"
+    PATTERN_FILES = r"^[0-9.]*.in-addr.arpa$"
 
     @staticmethod
     def send_error():
@@ -138,86 +138,59 @@ Check successfully {search_pattern.group()}
                 logging.debug(e)
 
 
-    def write_down_ptr(self, name: str):
-        path = self.show_path()
-        zones: list = self.list_dir()
-        ip = input("Введите ip: ").split('.')
-        ip.reverse()
-        ip_str = '.'.join(ip)
-        self.check_pattern(ip_str, self.PATTERN)
-        zone = inquirer.select(
-            message="Выберите зону:",
-            choices=zones,
-        ).execute()
-        domains: list = sorted(os.listdir(os.path.join(path, zone)))
-        domain = inquirer.select(
-            message="Выберите домен: ",
-            choices=domains,
-        ).execute()
-        full_path = os.path.join(path, zone, domain)
-        file = open(full_path, "a")
-        ip_str += ".in-addr.arpa."
-        print(ip_str)
-        file.write(ip_str.ljust(54) + f"3600   IN  PTR    {name}" + "\n")
-        file.close()
+    @staticmethod
+    def add_list(self, old_list: list, new_list: list, type: bool = False):
+        if type:
+            for i in range(len(old_list)):
+                if re.search(self.PATTERN_FILES, old_list[i]) == None:
+                    new_list.append(old_list[i])
+        else:
+            for i in range(len(old_list)):
+                if re.search(self.PATTERN_FILES, old_list[i]):
+                    new_list.append(old_list[i])
 
-    def write_down_a(self, name: str):
-        path = self.show_path()
-        zones: list = self.list_dir()
-        ip = input("Введите ip: ")
-        self.check_pattern(ip, self.PATTERN)
-        zone = inquirer.select(
-            message="Выберите зону:",
-            choices=zones,
-        ).execute()
-        domains: list = sorted(os.listdir(os.path.join(path, zone)))
-        domain = inquirer.select(
-            message="Выберите домен: ",
-            choices=domains,
-        ).execute()
-        full_path = os.path.join(path, zone, domain)
-        file = open(full_path, "a")
-        print(ip)
-        file.write(name.ljust(54) + f"3600   IN  A      {ip}")
-        file.close()
 
-    def write_down_all(self, name: str, ip: str, ptr: bool == False):
+    def write_down_all(self, name: str, ip: str, ptr: bool = None):
         try:
             path = self.show_path()
             zones: list = self.list_dir()
             self.check_pattern(ip, self.PATTERN)
+            a_lst: list = []
             if ptr:
+                ptr_lst: list = []
                 ip_ptr = ip.split('.')
                 ip_ptr.reverse()
-                ip_str = '.'.join(ip)
+                ip_str = '.'.join(ip_ptr)
                 print("select PTR zone")
                 zone_ptr = inquirer.select(
                     message="Выберите зону:",
                     choices=zones,
                 ).execute()
-                domains: list = sorted(os.listdir(os.path.join(path, zone_ptr)))
+                domains_ptr: list = sorted(os.listdir(os.path.join(path, zone_ptr)))
+                self.add_list(self, domains_ptr, ptr_lst)
                 domain_ptr = inquirer.select(
                     message="Выберите домен: ",
-                    choices=domains,
+                    choices=ptr_lst,
                 ).execute()
                 full_path_ptr = os.path.join(path, zone_ptr, domain_ptr)
                 file = open(full_path_ptr, "a")
                 ip_str += ".in-addr.arpa."
                 print(ip_str)
-                file.write(ip_str.ljust(54) + f"3600   IN  PTR    {name}" + "\n")
+                file.write(ip_str.ljust(54) + f"3600   IN  PTR    {name}.\n")
                 file.close()
             zone = inquirer.select(
                 message="Выберите зону:",
                 choices=zones,
             ).execute()
             domains: list = sorted(os.listdir(os.path.join(path, zone)))
+            self.add_list(self, domains, a_lst, True)
             domain = inquirer.select(
                 message="Выберите домен: ",
-                choices=domains,
+                choices=a_lst,
             ).execute()
             full_path = os.path.join(path, zone, domain)
             file = open(full_path, "a")
-            file.write(name.ljust(54) + f"3600   IN  A      {ip}")
+            file.write(name.ljust(54) + f"3600   IN  A      {ip}\n")
             file.close()
         except Exception as e:
             print(e)
@@ -274,7 +247,7 @@ class MyApp(Base):
             elif o in ('-i', '--ip'):
                 self.ip = a
                 print(self.address, self.ip, self.ptr)
-                # self.write_down_all(self.ptr, self.address)
+                self.write_down_all(self.address, self.ip, self.ptr)
             else:
                 assert False, 'unhandled option'
 
