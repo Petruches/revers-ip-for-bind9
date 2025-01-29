@@ -45,7 +45,9 @@ class Base():
   -h, --help                      display this help and exit
   -r, --revers                    test arg
   -j, --json                      check json file, if don't exist file then create this file
-  -p, --ptr                       create PTR record
+  -p, --ptr                       create PTR record at dns config. If the key is missing then there will be no entry
+  -a, --address                   create address record at dns config
+  -i, --ip                        ip for address record and/or ptr record
 
   Report bugs to <petryches.99@gmail.com>
         """)
