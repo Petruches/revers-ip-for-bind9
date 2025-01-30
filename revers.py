@@ -40,7 +40,7 @@ class Base():
 
     @staticmethod
     def usage() -> None:
-        print("""Usage: python hello.py [OPTION]... [arg]: [count] [timeout] [name] [file]
+        print("""Usage: adddnsrecord.py [OPTION]... [arg]: [name] [ip] [ptr]
 
   -h, --help                      display this help and exit
   -r, --revers                    test arg
@@ -240,13 +240,10 @@ class MyApp(Base):
                 self.check_dir(self, str(a))
             elif o in ('-p', '--ptr'):
                 self.ptr = True
-                # self.write_down_ptr(str(a))
             elif o in ('-a', '--address'):
                 self.address = a
-                # self.write_down_a(str(a))
             elif o in ('-i', '--ip'):
                 self.ip = a
-                print(self.address, self.ip, self.ptr)
                 self.write_down_all(self.address, self.ip, self.ptr)
             else:
                 assert False, 'unhandled option'
