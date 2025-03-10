@@ -196,23 +196,6 @@ Check successfully {search_pattern.group()}
             print(e)
 
 
-    @staticmethod
-    def hlp(self):
-        count = sys.argv[1]
-        for i in range(int(count)):
-            try:
-                ip = input("Введите ip:\n").split('.')
-                self.check_pattern(ip, self.PATTERN)
-                ip.reverse()
-                record = '.'.join(ip) + ".in-addr.arpa."
-                file = open(sys.argv[4], 'a')
-                file.write(record.ljust(54) + f"{sys.argv[2]}   IN  PTR    " + sys.argv[3] + "." + '\n')
-                file.close()
-                self.tail(sys.argv[4], 4)
-            except Exception as e:
-                print(e)
-
-
 class MyApp(Base):
 
     def __init__(self,  arg):
@@ -224,7 +207,7 @@ class MyApp(Base):
 
     def key_selection(self, *args) -> None:
         import getopt
-        longopts: list[str] = ['help', 'revers=', 'json=', 'ptr', 'address=', 'ip=']
+        longopts: list[str] = ['help', 'revers=', 'json=', 'ptr', 'address=', 'ip=', 'tail-address=', 'tail-ptr=']
         shortopts: str = 'hr:j:pa:i:'
         try:
             opts, args = getopt.getopt(self.arg, shortopts, longopts)
@@ -245,6 +228,10 @@ class MyApp(Base):
             elif o in ('-i', '--ip'):
                 self.ip = a
                 self.write_down_all(self.address, self.ip, self.ptr)
+            elif o in '--tail-address':
+                pass
+            elif o in '--tail-ptr':
+                pass
             else:
                 assert False, 'unhandled option'
 
